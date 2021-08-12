@@ -1,7 +1,7 @@
-
+<%
 '
 '	VBS JSON 2.0.3
-'	Copyright (c) 2009 Tuðrul Topuz
+'	Copyright (c) 2009 Tuï¿½rul Topuz
 '	Under the MIT (MIT-LICENSE.txt) license.
 '
 
@@ -25,7 +25,7 @@ Class jsCore
 	End Sub
 
 	' counter
-	Private Property Get Counter 
+	Private Property Get Counter
 		Counter = Count
 		Count = Count + 1
 	End Property
@@ -98,78 +98,98 @@ Class jsCore
 	End Function
 
 	' converting
-	Public Function toJSON(vPair)
+	Public Function toJSON(out, vPair)
+
 		Select Case VarType(vPair)
 			Case 0	' Empty
-				toJSON = "null"
+				out.WriteText "null"
 			Case 1	' Null
-				toJSON = "null"
+				out.WriteText "null"
 			Case 7	' Date
 				' toJSON = "new Date(" & (vPair - CDate(25569)) * 86400000 & ")"	' let in only utc time
-				toJSON = """" & CStr(vPair) & """"
+				out.WriteText """"
+				out.WriteText CStr(vPair)
+				out.WriteText """"
 			Case 8	' String
-				toJSON = """" & jsEncode(vPair) & """"
+				out.WriteText """"
+				out.WriteText jsEncode(vPair)
+				out.WriteText """"
 			Case 9	' Object
-				Dim bFI,i 
+				Dim bFI,i
 				bFI = True
-				If vPair.Kind Then toJSON = toJSON & "[" Else toJSON = toJSON & "{"
+				If vPair.Kind Then out.WriteText "[" Else out.WriteText "{"
 				For Each i In vPair.Collection
-					If bFI Then bFI = False Else toJSON = toJSON & ","
+					If bFI Then bFI = False Else out.WriteText ","
 
-					If vPair.Kind Then 
-						toJSON = toJSON & toJSON(vPair(i))
+					If vPair.Kind Then
+						toJSON out, vPair(i)
 					Else
 						If QuotedVars Then
-							toJSON = toJSON & """" & i & """:" & toJSON(vPair(i))
+							out.WriteText """"
+							out.WriteText i
+							out.WriteText """:"
+							toJSON out, vPair(i)
 						Else
-							toJSON = toJSON & i & ":" & toJSON(vPair(i))
+							out.WriteText i
+							out.WriteText ":"
+							toJSON out, vPair(i)
 						End If
 					End If
 				Next
-				If vPair.Kind Then toJSON = toJSON & "]" Else toJSON = toJSON & "}"
+				If vPair.Kind Then out.WriteText "]" Else out.WriteText "}"
 			Case 11
-				If vPair Then toJSON = "true" Else toJSON = "false"
+				If vPair Then out.WriteText "true" Else out.WriteText "false"
 			Case 12, 8192, 8204
-				toJSON = RenderArray(vPair, 1, "")
+				RenderArray out, vPair, 1, ""
 			Case Else
-				toJSON = Replace(vPair, ",", ".")
+				out.WriteText Replace(vPair, ",", ".")
 		End select
 	End Function
 
-	Function RenderArray(arr, depth, parent)
+	Function RenderArray(out, arr, depth, parent)
 		Dim first : first = LBound(arr, depth)
 		Dim last : last = UBound(arr, depth)
 
 		Dim index, rendered
 		Dim limiter : limiter = ","
 
-		RenderArray = "["
+		out.WriteText "["
 		For index = first To last
 			If index = last Then
 				limiter = ""
-			End If 
+			End If
 
 			On Error Resume Next
-			rendered = RenderArray(arr, depth + 1, parent & index & "," )
+			RenderArray out, arr, depth + 1, (parent & index & ",")
 
 			If Err = 9 Then
 				On Error GoTo 0
-				RenderArray = RenderArray & toJSON(Eval("arr(" & parent & index & ")")) & limiter
+				toJSON out, Eval("arr(" & parent & index & ")")
+				out.WriteText limiter
 			Else
-				RenderArray = RenderArray & rendered & "" & limiter
+				out.WriteText limiter
 			End If
 		Next
-		RenderArray = RenderArray & "]"
+		out.WriteText "]"
 	End Function
 
 	Public Property Get jsString
-		jsString = toJSON(Me)
+		dim out
+		set out = CreateObject("ADODB.Stream")
+		out.Type = 2 'Set type to text.'
+		out.Open
+
+		toJSON out, Me
+		out.Position = 0
+		jsString = out.ReadText
+		out.close
+		set out = nothing
 	End Property
 
 	Sub Flush
-		If TypeName(Response) <> "Empty" Then 
+		If TypeName(Response) <> "Empty" Then
 			Response.Write(jsString)
-		ElseIf WScript <> Empty Then 
+		ElseIf WScript <> Empty Then
 			WScript.Echo(jsString)
 		End If
 	End Sub
@@ -203,7 +223,4 @@ Function jsArray
 	Set jsArray = new jsCore
 	jsArray.Kind = JSON_ARRAY
 End Function
-
-Function toJSON(val)
-	toJSON = (new jsCore).toJSON(val)
-End Function
+%>
