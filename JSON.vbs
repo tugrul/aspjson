@@ -1,7 +1,6 @@
-<%
 '
 '	VBS JSON 2.0.3
-'	Copyright (c) 2009 Tu�rul Topuz
+'	Copyright (c) 2009 Tuðrul Topuz
 '	Under the MIT (MIT-LICENSE.txt) license.
 '
 
@@ -223,4 +222,7 @@ Function jsArray
 	Set jsArray = new jsCore
 	jsArray.Kind = JSON_ARRAY
 End Function
-%>
+
+Function toJSON(val)
+	toJSON = (new jsCore).toJSON(val)
+End Function
