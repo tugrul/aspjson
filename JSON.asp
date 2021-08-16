@@ -105,6 +105,14 @@ Class jsCore
 				out.WriteText "null"
 			Case 1	' Null
 				out.WriteText "null"
+			Case 4, 5 ' Single, Double
+				if (vPair < 1 AND vPair > 0) then
+					out.WriteText("0" & cStr(vPair))
+				elseif (vPair > -1 AND vPair < 0) then
+					out.WriteText("-0" & cStr(vPair))
+				else
+					out.WriteText(cStr(vPair))
+				end if
 			Case 7	' Date
 				' toJSON = "new Date(" & (vPair - CDate(25569)) * 86400000 & ")"	' let in only utc time
 				out.WriteText """"
@@ -137,9 +145,9 @@ Class jsCore
 					End If
 				Next
 				If vPair.Kind Then out.WriteText "]" Else out.WriteText "}"
-			Case 11
+			Case 11 ' Boolean
 				If vPair Then out.WriteText "true" Else out.WriteText "false"
-			Case 12, 8192, 8204
+			Case 12, 8192, 8204 ' Variant, Array, Array<Variant>
 				RenderArray out, vPair, 1, ""
 			Case Else
 				out.WriteText Replace(vPair, ",", ".")
