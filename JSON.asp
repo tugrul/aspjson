@@ -164,7 +164,7 @@ Class jsCore
 
 			If Err = 9 Then
 				On Error GoTo 0
-				toJSON out, Eval("arr(" & parent & index & ")")
+				toJSON out, arr((parent & index).split(","))
 				out.WriteText limiter
 			Else
 				out.WriteText limiter
