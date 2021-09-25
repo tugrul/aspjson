@@ -134,7 +134,7 @@ Class jsCore
 					Else
 						If QuotedVars Then
 							out.WriteText """"
-							out.WriteText i
+							out.WriteText jsEncode(i)
 							out.WriteText """:"
 							toJSON out, vPair(i)
 						Else
